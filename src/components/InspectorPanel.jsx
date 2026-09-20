@@ -220,23 +220,36 @@ export default function InspectorPanel({
 
           {/* Quick Background Presets for DJ Template */}
           {selectedTemplate?.id === 't18_dj_breakbeat_visualizer' && (
-            <div style={{ marginTop: '8px', display: 'flex', gap: '6px' }}>
-              <button
-                type="button"
-                className="btn-secondary"
-                style={{ flex: 1, padding: '4px 6px', fontSize: '0.68rem', justifyContent: 'center' }}
-                onClick={() => onUpdateMetadata({ bgImage: '/dj_desk_setup.jpg' })}
-              >
-                BG Studio RGB
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                style={{ flex: 1, padding: '4px 6px', fontSize: '0.68rem', justifyContent: 'center' }}
-                onClick={() => onUpdateMetadata({ bgImage: '/dj_desk_setup_original.jpg' })}
-              >
-                BG Original Video
-              </button>
+            <div style={{ marginTop: '10px' }}>
+              <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                Preset Background (Avee Player):
+              </span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ padding: '4px', fontSize: '0.66rem', justifyContent: 'center' }}
+                  onClick={() => onUpdateMetadata({ bgImage: '/dj_desk_setup.jpg' })}
+                >
+                  🖥️ Studio RGB
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ padding: '4px', fontSize: '0.66rem', justifyContent: 'center' }}
+                  onClick={() => onUpdateMetadata({ bgImage: '/presets/bg_bmw_white.jpg' })}
+                >
+                  🚗 BMW Putih
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ padding: '4px', fontSize: '0.66rem', justifyContent: 'center' }}
+                  onClick={() => onUpdateMetadata({ bgImage: '/presets/bg_bmw_black.jpg' })}
+                >
+                  🏎️ BMW Hitam
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -248,8 +261,49 @@ export default function InspectorPanel({
             <div className="form-group">
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Sliders size={14} color="#eab308" />
-                <span>Kustomisasi Teks DJ Logo</span>
+                <span>Kustomisasi Logo Tengah (Center Logo)</span>
               </label>
+
+              {/* Quick Logo Presets */}
+              <div style={{ marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                  Preset Logo Pilihan:
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '5px' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px', fontSize: '0.65rem', justifyContent: 'center' }}
+                    onClick={() => onUpdateMetadata({ coverImage: '/presets/logo_fharid_fvnky.png', centerLogo: '/presets/logo_fharid_fvnky.png', centerTextMode: false })}
+                  >
+                    Fharid
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px', fontSize: '0.65rem', justifyContent: 'center' }}
+                    onClick={() => onUpdateMetadata({ coverImage: '/presets/logo_ytdamzz.png', centerLogo: '/presets/logo_ytdamzz.png', centerTextMode: false })}
+                  >
+                    YT Damzz
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px', fontSize: '0.65rem', justifyContent: 'center' }}
+                    onClick={() => onUpdateMetadata({ coverImage: '/presets/logo_af.png', centerLogo: '/presets/logo_af.png', centerTextMode: false })}
+                  >
+                    AF Badge
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px', fontSize: '0.65rem', justifyContent: 'center' }}
+                    onClick={() => onUpdateMetadata({ coverImage: '/dj_default_logo.svg', centerLogo: '/dj_default_logo.svg', centerTextMode: false })}
+                  >
+                    Keyra
+                  </button>
+                </div>
+              </div>
 
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                 <button
