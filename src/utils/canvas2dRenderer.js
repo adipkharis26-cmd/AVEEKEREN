@@ -396,12 +396,25 @@ export function drawTemplateCanvas2D(ctx, templateId, data, progressPercent, wid
     }
     ctx.restore();
 
-    // 5. Bottom Track Info Bar
+    // 4.5 Social Media Branding Overlay (Avee Player Visualizer 36: Kharis Sopan)
     const cardW = width * 0.88;
     const cardH = height * 0.12;
     const cardX = (width - cardW) / 2;
     const cardY = height - cardH - 32;
 
+    if (assets.socialImg) {
+      ctx.save();
+      const sW = Math.min(width * 0.46, 520);
+      const sH = sW * (assets.socialImg.naturalHeight / assets.socialImg.naturalWidth);
+      const sX = (width - sW) / 2;
+      const sY = cardY - sH - 18;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = 'rgba(0,0,0,0.9)';
+      ctx.drawImage(assets.socialImg, sX, sY, sW, sH);
+      ctx.restore();
+    }
+
+    // 5. Bottom Track Info Bar
     ctx.save();
     drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 24);
     ctx.fillStyle = 'rgba(9, 10, 15, 0.86)';

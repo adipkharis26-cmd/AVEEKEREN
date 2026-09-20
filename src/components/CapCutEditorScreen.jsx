@@ -3,7 +3,7 @@ import TemplateRenderer from './templates/TemplateRenderer';
 import { 
   ArrowLeft, Download, Play, Pause, SkipBack, SkipForward, 
   RotateCcw, RotateCw, Maximize2, Scissors, Music, Type, 
-  Sparkles, Ratio, Bookmark, Eye, EyeOff, Plus, Check, Upload, Palette, Image as ImageIcon, Clock, Calendar
+  Sparkles, Ratio, Bookmark, Eye, EyeOff, Plus, Check, Upload, Palette, Image as ImageIcon, Clock, Calendar, Disc3, ShieldAlert
 } from 'lucide-react';
 
 export default function CapCutEditorScreen({ 
@@ -28,6 +28,7 @@ export default function CapCutEditorScreen({
   const coverInputRef = useRef(null);
   const bgInputRef = useRef(null);
   const audioInputRef = useRef(null);
+  const logoInputRef = useRef(null);
 
   if (!selectedTemplate) {
     return (
@@ -39,6 +40,13 @@ export default function CapCutEditorScreen({
       </div>
     );
   }
+
+  const isAveeTemplate = selectedTemplate.category === 'Avee Player .VIZ' || 
+                         selectedTemplate.category === 'DJ & Visualizer' || 
+                         selectedTemplate.id.startsWith('t18') || 
+                         selectedTemplate.id.startsWith('t19') || 
+                         selectedTemplate.id.startsWith('t20') ||
+                         selectedTemplate.id.startsWith('custom_viz');
 
   // Utility to format file size in human-readable units
   const formatFileSize = (bytes) => {
@@ -55,7 +63,11 @@ export default function CapCutEditorScreen({
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        onUpdateMetadata({ coverImage: event.target.result });
+        onUpdateMetadata({ 
+          coverImage: event.target.result,
+          centerLogo: event.target.result,
+          centerTextMode: false
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -72,19 +84,17 @@ export default function CapCutEditorScreen({
     }
   };
 
-  // iOS-friendly audio file upload handler with extension & MIME fallback
+  // Audio file upload handler
   const handleAudioFileChange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
-    // Reset input value so re-selecting same file triggers onChange
     e.target.value = '';
 
     const filename = file.name || 'Audio Track';
     const ext = (filename.split('.').pop() || '').toLowerCase();
     const rawType = (file.type || '').toLowerCase();
 
-    // Supported audio extensions (common on iOS Files app, iCloud Drive, Downloads)
     const supportedExts = ['mp3', 'm4a', 'aac', 'wav', 'ogg', 'flac', 'aiff', 'aif', 'caf', 'mp4', 'm4r', '3gp', 'amr', 'wma'];
     const isAudioMime = rawType.startsWith('audio/') || 
                         rawType.includes('mp4') || 
@@ -101,7 +111,6 @@ export default function CapCutEditorScreen({
       return;
     }
 
-    // Validate size limit (max 100MB)
     if (file.size > 100 * 1024 * 1024) {
       setAudioError(`Ukuran file (${formatFileSize(file.size)}) terlalu besar. Maksimal 100MB.`);
       return;
@@ -113,7 +122,6 @@ export default function CapCutEditorScreen({
     const formatLabel = ext ? ext.toUpperCase() : (rawType.split('/')[1] || 'AUDIO').toUpperCase();
     const songTitle = filename.replace(/\.[^/.]+$/, "");
 
-    // Create object URL with DataURL fallback for iOS WebViews
     const updateSongState = (audioUrl) => {
       onSelectSong({
         id: 'custom-' + Date.now(),
@@ -124,13 +132,14 @@ export default function CapCutEditorScreen({
         fileType: `${formatLabel} (${rawType || '.' + ext})`,
         fileSize: formattedSize
       });
+      // Also update song title in metadata if user hasn't typed a custom one
+      onUpdateMetadata({ songTitle });
     };
 
     try {
       const objectUrl = URL.createObjectURL(file);
       updateSongState(objectUrl);
     } catch (err) {
-      // Fallback for iOS WebViews where object URLs are restricted
       const reader = new FileReader();
       reader.onload = (evt) => {
         updateSongState(evt.target.result);
@@ -139,7 +148,7 @@ export default function CapCutEditorScreen({
     }
   };
 
-  const currentRatio = customAspectRatio || selectedTemplate.aspectRatio || '9:16';
+  const currentRatio = customAspectRatio || selectedTemplate.aspectRatio || (isAveeTemplate ? '16:9' : '9:16');
 
   const getNumericRatio = (r) => {
     switch(r) {
@@ -188,7 +197,7 @@ export default function CapCutEditorScreen({
 
         <button className="capcut-export-btn" onClick={onOpenExport}>
           <Download size={16} />
-          <span>Export</span>
+          <span>Export HD / MP4</span>
         </button>
       </header>
 
@@ -198,11 +207,13 @@ export default function CapCutEditorScreen({
           ref={canvasRef}
           className="capcut-canvas-stage"
           style={{
-            height: '380px',
+            height: isAveeTemplate ? '320px' : '380px',
             maxHeight: '44vh',
             aspectRatio: getNumericRatio(currentRatio),
             margin: '0 auto',
-            position: 'relative'
+            position: 'relative',
+            borderRadius: '12px',
+            overflow: 'hidden'
           }}
         >
           <TemplateRenderer 
@@ -231,6 +242,7 @@ export default function CapCutEditorScreen({
           <button 
             className="capcut-play-circle"
             onClick={() => onTogglePlay(!isPlaying)}
+            style={isAveeTemplate ? { background: metadata.glowColor || '#22c55e' } : {}}
           >
             {isPlaying ? <Pause size={20} fill="#000" /> : <Play size={20} fill="#000" style={{ marginLeft: '2px' }} />}
           </button>
@@ -256,7 +268,7 @@ export default function CapCutEditorScreen({
 
         {/* Multi-Track Layers List */}
         <div className="capcut-tracks-stack">
-          {/* Track 1: Foto Sampul */}
+          {/* Track 1: Logo Tengah / Foto Sampul */}
           <div className="capcut-track-row" style={{ position: 'relative', cursor: 'pointer' }}>
             <input 
               type="file" 
@@ -266,38 +278,45 @@ export default function CapCutEditorScreen({
             />
             <div className="capcut-track-meta">
               <Eye size={14} color="#94a3b8" />
-              <span>Foto sampul</span>
+              <span>{isAveeTemplate ? 'Logo Tengah' : 'Foto sampul'}</span>
             </div>
             <div className="capcut-track-content cover-track">
               <div className="capcut-track-clip cover-clip" style={{ width: '100%' }}>
-                <img src={metadata.coverImage || selectedTemplate.refImage} alt="cover" />
-                <span>Foto sampul (Klik untuk ganti)</span>
+                <img src={metadata.centerLogo || metadata.coverImage || selectedTemplate.refImage} alt="cover" />
+                <span>{isAveeTemplate ? 'Logo Tengah DJ (Klik untuk ganti logo)' : 'Foto sampul (Klik untuk ganti)'}</span>
               </div>
             </div>
           </div>
 
-          {/* Track 2: Judul Lagu Text Track */}
+          {/* Track 2: Background Track */}
+          <div className="capcut-track-row" style={{ position: 'relative', cursor: 'pointer' }}>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleBgFileChange} 
+              style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 10 }} 
+            />
+            <div className="capcut-track-meta">
+              <Eye size={14} color="#94a3b8" />
+              <span>Background</span>
+            </div>
+            <div className="capcut-track-content cover-track">
+              <div className="capcut-track-clip cover-clip" style={{ width: '100%' }}>
+                <img src={metadata.bgImage || selectedTemplate.refImage} alt="bg" />
+                <span>Background Visualizer (Klik untuk ganti gambar)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Track 3: Judul Lagu / DJ Text Track */}
           <div className="capcut-track-row" onClick={() => setActiveBottomTool('teks')} style={{ cursor: 'pointer' }}>
             <div className="capcut-track-meta">
               <Eye size={14} color="#94a3b8" />
-              <span>Judul</span>
+              <span>{isAveeTemplate ? 'Teks DJ' : 'Judul'}</span>
             </div>
             <div className="capcut-track-content text-track">
               <div className="capcut-track-clip text-clip" style={{ width: '100%' }}>
-                <span>𝘛 Judul: {metadata.songTitle || 'Judul Lagu'}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Track 3: Artist Text Track */}
-          <div className="capcut-track-row" onClick={() => setActiveBottomTool('teks')} style={{ cursor: 'pointer' }}>
-            <div className="capcut-track-meta">
-              <Eye size={14} color="#94a3b8" />
-              <span>Artist</span>
-            </div>
-            <div className="capcut-track-content artist-track">
-              <div className="capcut-track-clip artist-clip" style={{ width: '100%' }}>
-                <span>𝘛 Artist: {metadata.artist || 'Nama Artist'}</span>
+                <span>𝘛 {metadata.songTitle || (isAveeTemplate ? `${metadata.djName} ${metadata.djSubtitle}` : 'Judul')}</span>
               </div>
             </div>
           </div>
@@ -319,7 +338,7 @@ export default function CapCutEditorScreen({
                 {currentSong && (currentSong.filename || currentSong.title) ? (
                   <span>🎵 {currentSong.filename || currentSong.title} {currentSong.fileSize ? `(${currentSong.fileSize})` : ''} • Klik ganti</span>
                 ) : (
-                  <span>🎵 Belum ada audio (Klik untuk upload)</span>
+                  <span>🎵 Belum ada audio (Klik untuk upload MP3)</span>
                 )}
               </div>
             </div>
@@ -329,32 +348,86 @@ export default function CapCutEditorScreen({
 
       {/* CapCut Active Tool Inspector Drawer */}
       <div className="capcut-active-panel">
+        {/* EDIT TOOL: GANTI BACKGROUND & GANTI LOGO TENGAH */}
         {activeBottomTool === 'edit' && (
-          <div className="capcut-panel-row">
-            <label className="capcut-upload-card" style={{ position: 'relative', overflow: 'hidden' }}>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleCoverFileChange} 
-                style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 5 }} 
-              />
-              <Upload size={20} color="#a855f7" />
-              <span>Ganti Foto Sampul</span>
-            </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Direct Upload Buttons */}
+            <div className="capcut-panel-row">
+              <label className="capcut-upload-card" style={{ position: 'relative', overflow: 'hidden' }}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleCoverFileChange} 
+                  style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 5 }} 
+                />
+                <Upload size={18} color="#22c55e" />
+                <span>{isAveeTemplate ? 'Upload Logo Tengah' : 'Ganti Foto Sampul'}</span>
+              </label>
 
-            <label className="capcut-upload-card" style={{ position: 'relative', overflow: 'hidden' }}>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleBgFileChange} 
-                style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 5 }} 
-              />
-              <ImageIcon size={20} color="#38bdf8" />
-              <span>Ganti Background</span>
-            </label>
+              <label className="capcut-upload-card" style={{ position: 'relative', overflow: 'hidden' }}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleBgFileChange} 
+                  style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 5 }} 
+                />
+                <ImageIcon size={18} color="#38bdf8" />
+                <span>Upload Background Baru</span>
+              </label>
+            </div>
+
+            {/* Quick Presets for Avee Player Visualizer */}
+            {isAveeTemplate && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', whiteSpace: 'nowrap' }}>Preset BG:</span>
+                  <button
+                    onClick={() => onUpdateMetadata({ bgImage: '/presets/bg_bmw_white.jpg' })}
+                    style={{ padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    🚗 BMW Putih (D 8 DAF)
+                  </button>
+                  <button
+                    onClick={() => onUpdateMetadata({ bgImage: '/presets/bg_bmw_black.jpg' })}
+                    style={{ padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    🏎️ BMW Hitam (B 8 UAS)
+                  </button>
+                  <button
+                    onClick={() => onUpdateMetadata({ bgImage: '/dj_desk_setup.jpg' })}
+                    style={{ padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    🎧 DJ Studio Desk
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', whiteSpace: 'nowrap' }}>Preset Logo:</span>
+                  <button
+                    onClick={() => onUpdateMetadata({ centerLogo: '/presets/logo_fharid_fvnky.png', coverImage: '/presets/logo_fharid_fvnky.png', centerTextMode: false })}
+                    style={{ padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    ⚡ Fharid Fvnky
+                  </button>
+                  <button
+                    onClick={() => onUpdateMetadata({ centerLogo: '/presets/logo_ytdamzz.png', coverImage: '/presets/logo_ytdamzz.png', centerTextMode: false })}
+                    style={{ padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    🔥 YT DAMZZ
+                  </button>
+                  <button
+                    onClick={() => onUpdateMetadata({ centerLogo: '/presets/logo_af.png', coverImage: '/presets/logo_af.png', centerTextMode: false })}
+                    style={{ padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    🛡️ AF Badge
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
+        {/* AUDIO TOOL: UPLOAD AUDIO */}
         {activeBottomTool === 'audio' && (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {audioError && (
@@ -380,7 +453,7 @@ export default function CapCutEditorScreen({
                   <span className="capcut-audio-meta-title">🎵 Belum ada file audio</span>
                 </div>
                 <div className="capcut-audio-meta-tags">
-                  <span>Silakan upload file MP3 / M4A / WAV dari perangkat Anda</span>
+                  <span>Upload file MP3 / M4A / WAV dari perangkat Anda untuk audio-reactive</span>
                 </div>
               </div>
             )}
@@ -400,138 +473,191 @@ export default function CapCutEditorScreen({
           </div>
         )}
 
-        {/* Dynamic Full Text Fields Editor (Song Title, Artist, Lock Clock, Date, Badge, Caption, Username) */}
+        {/* TEKS TOOL: CUSTOMIZE TEXTS */}
         {activeBottomTool === 'teks' && (
-          <div className="capcut-panel-inputs" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '120px', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <div className="capcut-input-group">
-                <span className="capcut-input-label">Judul Lagu</span>
-                <input 
-                  type="text"
-                  className="capcut-text-input"
-                  value={metadata.songTitle || ''}
-                  onChange={(e) => onUpdateMetadata({ songTitle: e.target.value })}
-                  placeholder="Judul lagu..."
-                />
-              </div>
-              <div className="capcut-input-group">
-                <span className="capcut-input-label">Nama Artist</span>
-                <input 
-                  type="text"
-                  className="capcut-text-input"
-                  value={metadata.artist || ''}
-                  onChange={(e) => onUpdateMetadata({ artist: e.target.value })}
-                  placeholder="Nama artist..."
-                />
-              </div>
-            </div>
+          <div className="capcut-panel-inputs" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '130px', overflowY: 'auto' }}>
+            {isAveeTemplate ? (
+              <>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="capcut-input-group">
+                    <span className="capcut-input-label">Nama DJ</span>
+                    <input 
+                      type="text"
+                      className="capcut-text-input"
+                      value={metadata.djName || ''}
+                      onChange={(e) => onUpdateMetadata({ djName: e.target.value })}
+                      placeholder="Fharid / YT DAMZZ..."
+                    />
+                  </div>
+                  <div className="capcut-input-group">
+                    <span className="capcut-input-label">Subtitle DJ</span>
+                    <input 
+                      type="text"
+                      className="capcut-text-input"
+                      value={metadata.djSubtitle || ''}
+                      onChange={(e) => onUpdateMetadata({ djSubtitle: e.target.value })}
+                      placeholder="Fvnky / REMIX..."
+                    />
+                  </div>
+                </div>
 
-            {/* Lockscreen Jam & Tanggal Text Inputs (if available in template) */}
-            {(metadata.lockTime !== undefined || metadata.lockDate !== undefined || selectedTemplate.category === 'iOS Lockscreen') && (
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <div className="capcut-input-group">
-                  <span className="capcut-input-label">🕒 Teks Jam Lockscreen</span>
-                  <input 
-                    type="text"
-                    className="capcut-text-input"
-                    value={metadata.lockTime || '00:58'}
-                    onChange={(e) => onUpdateMetadata({ lockTime: e.target.value })}
-                    placeholder="00:58"
-                  />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="capcut-input-group">
+                    <span className="capcut-input-label">Judul Lagu / Sound TikTok</span>
+                    <input 
+                      type="text"
+                      className="capcut-text-input"
+                      value={metadata.songTitle || ''}
+                      onChange={(e) => onUpdateMetadata({ songTitle: e.target.value })}
+                      placeholder="DJ BREAKBEAT SOUND VIRAL..."
+                    />
+                  </div>
+                  <div className="capcut-input-group">
+                    <span className="capcut-input-label">Artist / Channel</span>
+                    <input 
+                      type="text"
+                      className="capcut-text-input"
+                      value={metadata.artist || ''}
+                      onChange={(e) => onUpdateMetadata({ artist: e.target.value })}
+                      placeholder="KHARIS SOPAN REMIX..."
+                    />
+                  </div>
                 </div>
-                <div className="capcut-input-group">
-                  <span className="capcut-input-label">📅 Teks Hari / Tanggal</span>
-                  <input 
-                    type="text"
-                    className="capcut-text-input"
-                    value={metadata.lockDate || 'Fri, Feb 20'}
-                    onChange={(e) => onUpdateMetadata({ lockDate: e.target.value })}
-                    placeholder="Fri, Feb 20"
-                  />
-                </div>
-              </div>
-            )}
 
-            {/* Weather & Battery Text Inputs */}
-            {(metadata.weatherText !== undefined || selectedTemplate.id === 't17_ios_weather_widget') && (
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <div className="capcut-input-group">
-                  <span className="capcut-input-label">⛅ Teks Cuaca</span>
-                  <input 
-                    type="text"
-                    className="capcut-text-input"
-                    value={metadata.weatherText || '18° Nublado'}
-                    onChange={(e) => onUpdateMetadata({ weatherText: e.target.value })}
-                    placeholder="18° Nublado..."
-                  />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                  <button
+                    onClick={() => onUpdateMetadata({ centerTextMode: !metadata.centerTextMode })}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      background: metadata.centerTextMode ? '#22c55e' : 'rgba(255,255,255,0.08)',
+                      color: metadata.centerTextMode ? '#090a0f' : '#cbd5e1',
+                      border: 'none',
+                      fontSize: '0.74rem',
+                      fontWeight: '700',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {metadata.centerTextMode ? '✓ Mode Teks DJ Aktif' : 'Mode Gambar Logo Aktif (Klik untuk ubah ke Teks)'}
+                  </button>
                 </div>
-                <div className="capcut-input-group">
-                  <span className="capcut-input-label">🔋 Teks Baterai & Nama</span>
-                  <input 
-                    type="text"
-                    className="capcut-text-input"
-                    value={metadata.batteryText || '92% iPhone'}
-                    onChange={(e) => onUpdateMetadata({ batteryText: e.target.value })}
-                    placeholder="92% iPhone..."
-                  />
+              </>
+            ) : (
+              <>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="capcut-input-group">
+                    <span className="capcut-input-label">Judul Lagu</span>
+                    <input 
+                      type="text"
+                      className="capcut-text-input"
+                      value={metadata.songTitle || ''}
+                      onChange={(e) => onUpdateMetadata({ songTitle: e.target.value })}
+                      placeholder="Judul lagu..."
+                    />
+                  </div>
+                  <div className="capcut-input-group">
+                    <span className="capcut-input-label">Nama Artist</span>
+                    <input 
+                      type="text"
+                      className="capcut-text-input"
+                      value={metadata.artist || ''}
+                      onChange={(e) => onUpdateMetadata({ artist: e.target.value })}
+                      placeholder="Nama artist..."
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Profile Username / Caption Inputs */}
-            {(metadata.username !== undefined || metadata.caption !== undefined || metadata.quoteText !== undefined) && (
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <div className="capcut-input-group">
-                  <span className="capcut-input-label">👤 Username / Caption</span>
-                  <input 
-                    type="text"
-                    className="capcut-text-input"
-                    value={metadata.username || metadata.caption || metadata.quoteText || ''}
-                    onChange={(e) => onUpdateMetadata({ username: e.target.value, caption: e.target.value, quoteText: e.target.value })}
-                    placeholder="Username atau caption..."
-                  />
-                </div>
-                <div className="capcut-input-group">
-                  <span className="capcut-input-label">🏷️ Brand / Badge Logo</span>
-                  <input 
-                    type="text"
-                    className="capcut-text-input"
-                    value={metadata.badgeText || 'Spotify'}
-                    onChange={(e) => onUpdateMetadata({ badgeText: e.target.value })}
-                    placeholder="Spotify, iPhone..."
-                  />
-                </div>
-              </div>
+              </>
             )}
           </div>
         )}
 
+        {/* GAYA TOOL: NEON GLOW, PARTICLES, BEAT SHAKE */}
         {activeBottomTool === 'gaya' && (
-          <div className="capcut-panel-row" style={{ alignItems: 'center', justifyContent: 'space-around' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '600' }}>Glow Neon:</span>
-              <input 
-                type="color"
-                className="color-swatch-input"
-                value={metadata.glowColor || '#8b5cf6'}
-                onChange={(e) => onUpdateMetadata({ glowColor: e.target.value })}
-              />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="capcut-panel-row" style={{ alignItems: 'center', justifyContent: 'space-around' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '600' }}>Warna Glow:</span>
+                <input 
+                  type="color"
+                  className="color-swatch-input"
+                  value={metadata.glowColor || '#22c55e'}
+                  onChange={(e) => onUpdateMetadata({ glowColor: e.target.value })}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '600' }}>Warna Accent:</span>
+                <input 
+                  type="color"
+                  className="color-swatch-input"
+                  value={metadata.accentColor || '#facc15'}
+                  onChange={(e) => onUpdateMetadata({ accentColor: e.target.value })}
+                />
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '600' }}>Warna Jam:</span>
-              <input 
-                type="color"
-                className="color-swatch-input"
-                value={metadata.clockColor || '#fed7aa'}
-                onChange={(e) => onUpdateMetadata({ clockColor: e.target.value })}
-              />
-            </div>
+
+            {isAveeTemplate && (
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+                <button
+                  onClick={() => onUpdateMetadata({ bassShake: !metadata.bassShake })}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '12px',
+                    background: metadata.bassShake ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255,255,255,0.06)',
+                    border: metadata.bassShake ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.1)',
+                    color: metadata.bassShake ? '#22c55e' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {metadata.bassShake ? '✓ Beat Shake Aktif' : 'Beat Shake Mati'}
+                </button>
+
+                <button
+                  onClick={() => onUpdateMetadata({ particlesEnabled: !metadata.particlesEnabled })}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '12px',
+                    background: metadata.particlesEnabled !== false ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255,255,255,0.06)',
+                    border: metadata.particlesEnabled !== false ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.1)',
+                    color: metadata.particlesEnabled !== false ? '#38bdf8' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {metadata.particlesEnabled !== false ? '✓ Partikel Komet Aktif' : 'Partikel Mati'}
+                </button>
+
+                <button
+                  onClick={() => onUpdateMetadata({
+                    socialOverlay: metadata.socialOverlay ? '' : '/presets/overlay_kharis_sopan.png'
+                  })}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '12px',
+                    background: metadata.socialOverlay ? 'rgba(250, 204, 21, 0.25)' : 'rgba(255,255,255,0.06)',
+                    border: metadata.socialOverlay ? '1px solid #facc15' : '1px solid rgba(255,255,255,0.1)',
+                    color: metadata.socialOverlay ? '#facc15' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {metadata.socialOverlay ? '✓ Overlay Kharis Sopan' : '+ Pasang Overlay Kharis'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
+        {/* RASIO TOOL */}
         {activeBottomTool === 'rasio' && (
           <div className="capcut-panel-pills">
-            {['1:1', '9:16', '9:19', '4:5', '3:4', '16:9'].map(r => (
+            {['16:9', '9:16', '1:1', '4:5', '3:4', '9:19'].map(r => (
               <button 
                 key={r}
                 className={`capcut-ratio-pill ${currentRatio === r ? 'active' : ''}`}

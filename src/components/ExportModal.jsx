@@ -62,9 +62,10 @@ export default function ExportModal({
 
     try {
       // 1. Preload cover & background images
-      const coverImg = await loadSingleImage(metadata.coverImage || selectedTemplate?.refImage);
+      const coverImg = await loadSingleImage(metadata.centerLogo || metadata.coverImage || selectedTemplate?.refImage);
       const bgImg = await loadSingleImage(metadata.bgImage);
-      const assets = { coverImg, bgImg };
+      const socialImg = await loadSingleImage(metadata.socialOverlay);
+      const assets = { coverImg, bgImg, socialImg };
 
       // 2. Create offscreen canvas at scaled resolution
       const finalW = exportWidth * scale;
@@ -118,9 +119,10 @@ export default function ExportModal({
 
     try {
       // 1. Preload images once (< 50ms)
-      const coverImg = await loadSingleImage(metadata.coverImage || selectedTemplate?.refImage);
+      const coverImg = await loadSingleImage(metadata.centerLogo || metadata.coverImage || selectedTemplate?.refImage);
       const bgImg = await loadSingleImage(metadata.bgImage);
-      const assets = { coverImg, bgImg };
+      const socialImg = await loadSingleImage(metadata.socialOverlay);
+      const assets = { coverImg, bgImg, socialImg };
 
       // 2. Offscreen recording canvas at exact project resolution
       const offscreenCanvas = document.createElement('canvas');
