@@ -267,7 +267,7 @@ export function drawTemplateCanvas2D(ctx, templateId, data, progressPercent, wid
   // =================================================================
   // TEMPLATE 18: DJ Breakbeat Avee Player Visualizer
   // =================================================================
-  if (templateId === 't18_dj_breakbeat_visualizer') {
+  if (templateId === 't18_dj_breakbeat_visualizer' || templateId === 't19_avee_visualizer_33' || templateId === 't20_avee_visualizer_36') {
     const animTime = (progressPercent / 100) * 50;
     const cx = width / 2;
     const cy = height / 2;

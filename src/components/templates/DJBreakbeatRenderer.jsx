@@ -313,6 +313,33 @@ export default function DJBreakbeatRenderer({
         )}
       </div>
 
+      {/* Optional Social Media Overlay (Kharis Sopan Branding from Visualizer 36) */}
+      {data.socialOverlay && (
+        <div style={{
+          position: 'absolute',
+          bottom: '72px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 15,
+          pointerEvents: 'none',
+          width: '52%',
+          maxWidth: '360px',
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+          <img
+            src={data.socialOverlay}
+            alt="Social Branding"
+            onError={(e) => { e.target.style.display = 'none'; }}
+            style={{
+              width: '100%',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.85))'
+            }}
+          />
+        </div>
+      )}
+
       {/* Bottom Track Information Bar (Avee Player Signature Style) */}
       <div style={{
         position: 'absolute',

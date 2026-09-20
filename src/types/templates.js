@@ -371,6 +371,59 @@ export const TEMPLATES = [
       waveBars: 80,
       centerTextMode: false
     }
+  },
+  {
+    id: 't19_avee_visualizer_33',
+    name: 'Avee Visualizer 33 (YT DAMZZ)',
+    category: 'DJ & Visualizer',
+    refImage: '/presets/bg_bmw_black.jpg',
+    description: 'Template Avee Player visualizer_33 asli: BMW Hitam B 8 UAS, circular bass wave & YT DAMZZ badge.',
+    aspectRatio: '16:9',
+    durationTag: '0:30',
+    usedCount: '190+ kali digunakan',
+    defaults: {
+      djName: 'YT DAMZZ',
+      djSubtitle: 'REMIX',
+      songTitle: 'MABUK CINTA JDM PLAT KT REMIX',
+      artist: 'YT DAMZZ FULL BASS',
+      glowColor: '#38bdf8',
+      accentColor: '#a855f7',
+      centerLogo: '/presets/logo_ytdamzz.png',
+      coverImage: '/presets/logo_ytdamzz.png',
+      bgImage: '/presets/bg_bmw_black.jpg',
+      bassShake: true,
+      particlesEnabled: true,
+      particleColor: '#38bdf8',
+      waveBars: 72,
+      centerTextMode: false
+    }
+  },
+  {
+    id: 't20_avee_visualizer_36',
+    name: 'Avee Visualizer 36 (Kharis Sopan)',
+    category: 'DJ & Visualizer',
+    refImage: '/presets/bg_bmw_white.jpg',
+    description: 'Template Avee Player visualizer_36 asli: BMW Putih D 8 DAF, Fharid logo & overlay Kharis Sopan.',
+    aspectRatio: '16:9',
+    durationTag: '0:30',
+    usedCount: '230+ kali digunakan',
+    defaults: {
+      djName: 'Fharid',
+      djSubtitle: 'Fvnky',
+      songTitle: 'DJ BREAKBEAT SOUND TIKTOK VIRAL',
+      artist: 'KHARIS SOPAN REMIX',
+      glowColor: '#22c55e',
+      accentColor: '#facc15',
+      centerLogo: '/presets/logo_fharid_fvnky.png',
+      coverImage: '/presets/logo_fharid_fvnky.png',
+      bgImage: '/presets/bg_bmw_white.jpg',
+      socialOverlay: '/presets/overlay_kharis_sopan.png',
+      bassShake: true,
+      particlesEnabled: true,
+      particleColor: '#22c55e',
+      waveBars: 80,
+      centerTextMode: false
+    }
   }
 ];
 

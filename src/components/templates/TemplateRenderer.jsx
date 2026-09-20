@@ -656,9 +656,11 @@ export default function TemplateRenderer({
       );
 
     // -------------------------------------------------------------
-    // TEMPLATE 18: DJ Breakbeat Avee Player Visualizer
+    // TEMPLATES 18, 19, 20: Avee Player DJ Visualizers
     // -------------------------------------------------------------
     case 't18_dj_breakbeat_visualizer':
+    case 't19_avee_visualizer_33':
+    case 't20_avee_visualizer_36':
       return (
         <DJBreakbeatRenderer
           data={data}
