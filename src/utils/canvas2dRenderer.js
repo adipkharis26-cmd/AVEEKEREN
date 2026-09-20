@@ -265,6 +265,178 @@ export function drawTemplateCanvas2D(ctx, templateId, data, progressPercent, wid
   const totalSecs = 210; // 3:30
 
   // =================================================================
+  // TEMPLATE 18: DJ Breakbeat Avee Player Visualizer
+  // =================================================================
+  if (templateId === 't18_dj_breakbeat_visualizer') {
+    const animTime = (progressPercent / 100) * 50;
+    const cx = width / 2;
+    const cy = height / 2;
+    const baseRadius = Math.min(width, height) * 0.17;
+    const beat = Math.sin(animTime * 12);
+    const beatPulse = beat > 0.25 ? (beat - 0.25) * 1.4 : 0;
+    const pulsedRadius = baseRadius * (1 + beatPulse * 0.08);
+
+    // 1. Cinematic Ambient Vignette & Room Glow
+    ctx.save();
+    const vigGrad = ctx.createRadialGradient(cx, cy, baseRadius * 0.8, cx, cy, Math.max(width, height) * 0.72);
+    vigGrad.addColorStop(0, 'rgba(0,0,0,0.15)');
+    vigGrad.addColorStop(0.65, 'rgba(0,0,0,0.65)');
+    vigGrad.addColorStop(1, '#000000');
+    ctx.fillStyle = vigGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    const roomGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseRadius * 2.5);
+    roomGlow.addColorStop(0, glowColor + '22');
+    roomGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = roomGlow;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+
+    // 2. Flying Comet Shards
+    if (data.particlesEnabled !== false) {
+      ctx.save();
+      for (let i = 0; i < 30; i++) {
+        const seed = (i * 137.5) % 360;
+        const angle = (seed * Math.PI) / 180;
+        const speed = 280 + (i % 7) * 45;
+        const dist = pulsedRadius + ((animTime * speed + i * 90) % (Math.max(width, height) * 0.65));
+        const len = 35 + (i % 5) * 18;
+        const tailDist = Math.max(pulsedRadius, dist - len);
+
+        const headX = cx + Math.cos(angle) * dist;
+        const headY = cy + Math.sin(angle) * dist;
+        const tailX = cx + Math.cos(angle) * tailDist;
+        const tailY = cy + Math.sin(angle) * tailDist;
+
+        const pColor = i % 2 === 0 ? glowColor : (data.accentColor || '#22c55e');
+        ctx.strokeStyle = pColor;
+        ctx.lineWidth = Math.round(width * 0.0035);
+        ctx.globalAlpha = 0.75;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = pColor;
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(headX, headY);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(headX, headY, Math.round(width * 0.003), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // 3. Circular Audio Wave Spectrum
+    const numBars = 72;
+    ctx.save();
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = glowColor;
+
+    for (let i = 0; i < numBars; i++) {
+      const theta = (i / numBars) * Math.PI * 2;
+      const h1 = Math.sin(i * 0.35 + animTime * 6);
+      const h2 = Math.cos(i * 0.7 - animTime * 8);
+      const mag = Math.abs(h1 * 0.5 + h2 * 0.5) * (0.65 + beatPulse * 1.1) + 0.15;
+      const barLen = Math.min(width, height) * 0.13 * mag;
+
+      const inX = cx + Math.cos(theta) * pulsedRadius;
+      const inY = cy + Math.sin(theta) * pulsedRadius;
+      const outX = cx + Math.cos(theta) * (pulsedRadius + barLen);
+      const outY = cy + Math.sin(theta) * (pulsedRadius + barLen);
+
+      const barGrad = ctx.createLinearGradient(inX, inY, outX, outY);
+      barGrad.addColorStop(0, glowColor);
+      barGrad.addColorStop(1, data.accentColor || '#22c55e');
+
+      ctx.strokeStyle = barGrad;
+      ctx.lineWidth = Math.max(3, (Math.PI * 2 * pulsedRadius / numBars) * 0.65);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(inX, inY);
+      ctx.lineTo(outX, outY);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 4. Center Glowing Circular Badge
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, pulsedRadius, 0, Math.PI * 2);
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = Math.round(width * 0.005);
+    ctx.shadowBlur = 28;
+    ctx.shadowColor = glowColor;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, pulsedRadius - 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#09090b';
+    ctx.shadowBlur = 0;
+    ctx.fill();
+
+    // Render Custom Center Logo or DJ Typography
+    const innerDiameter = (pulsedRadius - 4) * 2;
+    if (assets.coverImg && !data.centerTextMode) {
+      drawClippedImage(ctx, assets.coverImg, cx - innerDiameter / 2, cy - innerDiameter / 2, innerDiameter, innerDiameter, innerDiameter / 2);
+    } else {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `900 ${Math.round(innerDiameter * 0.28)}px 'Impact', 'Montserrat', sans-serif`;
+      ctx.fillStyle = glowColor;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = glowColor;
+      ctx.fillText(data.djName || 'Keyra', cx, cy - innerDiameter * 0.12);
+
+      ctx.font = `italic 900 ${Math.round(innerDiameter * 0.22)}px 'Arial Black', sans-serif`;
+      ctx.fillStyle = '#ef4444';
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = '#ef4444';
+      ctx.fillText(data.djSubtitle || 'Fvnky', cx, cy + innerDiameter * 0.22);
+    }
+    ctx.restore();
+
+    // 5. Bottom Track Info Bar
+    const cardW = width * 0.88;
+    const cardH = height * 0.12;
+    const cardX = (width - cardW) / 2;
+    const cardY = height - cardH - 32;
+
+    ctx.save();
+    drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 24);
+    ctx.fillStyle = 'rgba(9, 10, 15, 0.86)';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.stroke();
+
+    // Play button icon
+    drawCirclePlayButton(ctx, cardX + cardH * 0.55, cardY + cardH * 0.5, cardH * 0.55, glowColor, '#09090b');
+
+    // Track text
+    const textX = cardX + cardH * 1.1;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `800 ${Math.round(cardH * 0.32)}px sans-serif`;
+    ctx.fillText(songTitle, textX, cardY + cardH * 0.44);
+
+    ctx.fillStyle = glowColor;
+    ctx.font = `600 ${Math.round(cardH * 0.24)}px sans-serif`;
+    ctx.fillText(artist, textX, cardY + cardH * 0.76);
+
+    // Progress line
+    const progW = cardW - cardH * 1.3 - 100;
+    const progY = cardY + cardH - 12;
+    drawProgressBar(ctx, textX, progY, progW, 4, progressPercent, glowColor, 'rgba(255,255,255,0.2)');
+
+    // Timecode
+    drawTimecode(ctx, progressPercent, totalSecs, textX + progW + 15, textX + progW + 80, progY + 4, Math.round(cardH * 0.22), '#cbd5e1');
+    ctx.restore();
+    return;
+  }
+
+  // =================================================================
   // TEMPLATE 1: t1_holographic_profile
   // =================================================================
   if (templateId === 't1_holographic_profile') {

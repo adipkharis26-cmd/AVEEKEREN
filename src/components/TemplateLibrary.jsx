@@ -5,7 +5,7 @@ import { LayoutGrid, Sparkles } from 'lucide-react';
 export default function TemplateLibrary({ selectedTemplate, onSelectTemplate }) {
   const [activeCategory, setActiveCategory] = useState('All');
 
-  const categories = ['All', 'Cyber & Hologram', 'Futuristic & Airpods', 'Streetwear & Aesthetic', 'Minimal & Polaroid', 'Vinyl & Retro'];
+  const categories = ['All', 'DJ & Visualizer', 'iOS Lockscreen', 'Cyber & Hologram', 'Futuristic & Airpods', 'Streetwear & Aesthetic', 'Minimal & Polaroid', 'Vinyl & Retro'];
 
   const filteredTemplates = activeCategory === 'All'
     ? TEMPLATES
@@ -18,7 +18,7 @@ export default function TemplateLibrary({ selectedTemplate, onSelectTemplate }) 
           <LayoutGrid size={18} color="#38bdf8" />
           <span>Template Library</span>
         </div>
-        <span className="brand-badge">14 Presets</span>
+        <span className="brand-badge">{TEMPLATES.length} Presets</span>
       </div>
 
       {/* Category Pills */}

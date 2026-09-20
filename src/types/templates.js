@@ -345,6 +345,32 @@ export const TEMPLATES = [
       coverImage: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80',
       bgImage: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80'
     }
+  },
+  {
+    id: 't18_dj_breakbeat_visualizer',
+    name: 'DJ Breakbeat Avee Visualizer',
+    category: 'DJ & Visualizer',
+    refImage: '/dj_desk_setup.jpg',
+    description: 'Avee Player circular audio-reactive bass visualizer with flying comets & customizable DJ center logo.',
+    aspectRatio: '16:9',
+    durationTag: '0:30',
+    usedCount: '150+ kali digunakan',
+    defaults: {
+      djName: 'Keyra',
+      djSubtitle: 'Fvnky',
+      songTitle: 'DJ THE ONE THAT GOT AWAY',
+      artist: 'BREAKBEAT REMIX FULL BASS VIRAL',
+      glowColor: '#facc15',
+      accentColor: '#22c55e',
+      centerLogo: '/dj_default_logo.svg',
+      coverImage: '/dj_default_logo.svg',
+      bgImage: '/dj_desk_setup.jpg',
+      bassShake: true,
+      particlesEnabled: true,
+      particleColor: '#facc15',
+      waveBars: 80,
+      centerTextMode: false
+    }
   }
 ];
 

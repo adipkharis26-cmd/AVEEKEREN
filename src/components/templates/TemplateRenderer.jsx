@@ -5,6 +5,7 @@ import {
   MoreHorizontal, Plus, ChevronDown, Check, Sliders,
   Cloud, BatteryCharging, Headphones, Camera, Zap
 } from 'lucide-react';
+import DJBreakbeatRenderer from './DJBreakbeatRenderer';
 
 export default function TemplateRenderer({ 
   template, 
@@ -652,6 +653,22 @@ export default function TemplateRenderer({
             </div>
           </div>
         </div>
+      );
+
+    // -------------------------------------------------------------
+    // TEMPLATE 18: DJ Breakbeat Avee Player Visualizer
+    // -------------------------------------------------------------
+    case 't18_dj_breakbeat_visualizer':
+      return (
+        <DJBreakbeatRenderer
+          data={data}
+          isPlaying={isPlaying}
+          progress={progress}
+          onTogglePlay={onTogglePlay}
+          currentTimeStr={currentTimeStr}
+          durationStr={durationStr}
+          handleImgError={handleImgError}
+        />
       );
 
     // Default fallback

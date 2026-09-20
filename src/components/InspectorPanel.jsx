@@ -182,16 +182,29 @@ export default function InspectorPanel({
         <div className="form-group">
           <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <ImageIcon size={14} />
-            <span>Images & Cover Art</span>
+            <span>{selectedTemplate?.id === 't18_dj_breakbeat_visualizer' ? 'Logo Tengah & Background' : 'Images & Cover Art'}</span>
           </label>
 
           <div className="form-row">
             <div>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Cover Photo</span>
+              <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                {selectedTemplate?.id === 't18_dj_breakbeat_visualizer' ? 'Logo Tengah (Center)' : 'Cover Photo'}
+              </span>
               <label className="btn-secondary" style={{ marginTop: '4px', width: '100%', justifyContent: 'center' }}>
                 <Upload size={14} />
-                <span>Replace Cover</span>
-                <input type="file" accept="image/*" onChange={handleCoverUpload} style={{ display: 'none' }} />
+                <span>Ganti Logo</span>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const url = URL.createObjectURL(file);
+                      onUpdateMetadata({ coverImage: url, centerLogo: url, centerTextMode: false });
+                    }
+                  }} 
+                  style={{ display: 'none' }} 
+                />
               </label>
             </div>
 
@@ -199,12 +212,130 @@ export default function InspectorPanel({
               <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Background</span>
               <label className="btn-secondary" style={{ marginTop: '4px', width: '100%', justifyContent: 'center' }}>
                 <Upload size={14} />
-                <span>Replace BG</span>
+                <span>Ganti BG</span>
                 <input type="file" accept="image/*" onChange={handleBgUpload} style={{ display: 'none' }} />
               </label>
             </div>
           </div>
+
+          {/* Quick Background Presets for DJ Template */}
+          {selectedTemplate?.id === 't18_dj_breakbeat_visualizer' && (
+            <div style={{ marginTop: '8px', display: 'flex', gap: '6px' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ flex: 1, padding: '4px 6px', fontSize: '0.68rem', justifyContent: 'center' }}
+                onClick={() => onUpdateMetadata({ bgImage: '/dj_desk_setup.jpg' })}
+              >
+                BG Studio RGB
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ flex: 1, padding: '4px 6px', fontSize: '0.68rem', justifyContent: 'center' }}
+                onClick={() => onUpdateMetadata({ bgImage: '/dj_desk_setup_original.jpg' })}
+              >
+                BG Original Video
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* DJ Specific Center Badge & Typography Controls */}
+        {selectedTemplate?.id === 't18_dj_breakbeat_visualizer' && (
+          <>
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+            <div className="form-group">
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sliders size={14} color="#eab308" />
+                <span>Kustomisasi Teks DJ Logo</span>
+              </label>
+
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => onUpdateMetadata({ centerTextMode: false })}
+                  style={{
+                    flex: 1,
+                    padding: '6px',
+                    borderRadius: '8px',
+                    border: !metadata.centerTextMode ? '1px solid #facc15' : '1px solid rgba(255,255,255,0.1)',
+                    background: !metadata.centerTextMode ? 'rgba(250,204,21,0.15)' : 'transparent',
+                    color: !metadata.centerTextMode ? '#facc15' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Mode Gambar Logo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onUpdateMetadata({ centerTextMode: true })}
+                  style={{
+                    flex: 1,
+                    padding: '6px',
+                    borderRadius: '8px',
+                    border: metadata.centerTextMode ? '1px solid #facc15' : '1px solid rgba(255,255,255,0.1)',
+                    background: metadata.centerTextMode ? 'rgba(250,204,21,0.15)' : 'transparent',
+                    color: metadata.centerTextMode ? '#facc15' : '#94a3b8',
+                    fontSize: '0.72rem',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Mode Teks DJ
+                </button>
+              </div>
+
+              {metadata.centerTextMode && (
+                <div className="form-row">
+                  <div>
+                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>DJ Name</span>
+                    <input 
+                      type="text" 
+                      className="form-input"
+                      value={metadata.djName || 'Keyra'}
+                      onChange={(e) => onUpdateMetadata({ djName: e.target.value })}
+                      placeholder="e.g. Keyra"
+                    />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>DJ Subtitle</span>
+                    <input 
+                      type="text" 
+                      className="form-input"
+                      value={metadata.djSubtitle || 'Fvnky'}
+                      onChange={(e) => onUpdateMetadata({ djSubtitle: e.target.value })}
+                      placeholder="e.g. Fvnky"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Effects Toggles */}
+              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={metadata.particlesEnabled !== false}
+                    onChange={(e) => onUpdateMetadata({ particlesEnabled: e.target.checked })}
+                  />
+                  <span>Aktifkan Partikel Komet Terbang</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={metadata.bassShake !== false}
+                    onChange={(e) => onUpdateMetadata({ bassShake: e.target.checked })}
+                  />
+                  <span>Efek Getar Bass (Jedag-Jedug Shake)</span>
+                </label>
+              </div>
+            </div>
+          </>
+        )}
 
         <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)' }} />
 
@@ -214,6 +345,36 @@ export default function InspectorPanel({
             <Palette size={14} />
             <span>Neon Glow & Theme Color</span>
           </label>
+
+          {/* Quick Neon Presets for DJ Visualizer */}
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+            {[
+              { name: 'Kuning', color: '#facc15', label: 'Yellow' },
+              { name: 'Hijau', color: '#22c55e', label: 'Lime' },
+              { name: 'Cyan', color: '#38bdf8', label: 'Cyan' },
+              { name: 'Ungu', color: '#a855f7', label: 'Purple' },
+              { name: 'Merah', color: '#ef4444', label: 'Red' }
+            ].map(preset => (
+              <button
+                key={preset.color}
+                type="button"
+                onClick={() => onUpdateMetadata({ glowColor: preset.color, particleColor: preset.color })}
+                style={{
+                  padding: '3px 8px',
+                  borderRadius: '12px',
+                  border: `1px solid ${preset.color}`,
+                  background: metadata.glowColor === preset.color ? preset.color : 'transparent',
+                  color: metadata.glowColor === preset.color ? '#09090b' : preset.color,
+                  fontSize: '0.68rem',
+                  fontWeight: '700',
+                  cursor: 'pointer'
+                }}
+              >
+                {preset.name}
+              </button>
+            ))}
+          </div>
+
           <div className="color-picker-row">
             <input 
               type="color" 

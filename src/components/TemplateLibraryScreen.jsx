@@ -4,12 +4,17 @@ import { Sparkles, Search, ArrowRight, Folder, LayoutGrid } from 'lucide-react';
 
 export default function TemplateLibraryScreen({ onSelectTemplate }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [activeTab, setActiveTab] = useState('template'); // 'draft' | 'template'
 
-  const filteredTemplates = TEMPLATES.filter(t => 
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const categories = ['Semua', 'DJ & Visualizer', 'iOS Lockscreen', 'Cyber & Hologram', 'Futuristic & Airpods', 'Streetwear & Aesthetic', 'Vinyl & Retro'];
+
+  const filteredTemplates = TEMPLATES.filter(t => {
+    const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'Semua' || t.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="capcut-screen">
@@ -28,6 +33,38 @@ export default function TemplateLibraryScreen({ onSelectTemplate }) {
           <Search size={20} color="#f8fafc" />
         </button>
       </header>
+
+      {/* Category Filter Pills */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        padding: '10px 16px',
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        background: 'rgba(15, 17, 23, 0.6)'
+      }}>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: selectedCategory === cat ? '1px solid #a855f7' : '1px solid rgba(255,255,255,0.08)',
+              background: selectedCategory === cat ? 'linear-gradient(135deg, #a855f7, #6366f1)' : 'rgba(255,255,255,0.04)',
+              color: selectedCategory === cat ? '#ffffff' : '#94a3b8',
+              fontSize: '0.78rem',
+              fontWeight: '600',
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+              boxShadow: selectedCategory === cat ? '0 0 12px rgba(168,85,247,0.4)' : 'none',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
       {/* Main Template Grid */}
       <main className="capcut-grid-container">
